@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación de Análisis de Datos</title>
+    
+    <!-- Favicon (opcional) -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Estilos principales -->
+    <link rel="stylesheet" href="styles/main.css">
+    
+    <!-- Precargar estilos de la vista de carga ya que es la primera vista -->
+    <link rel="stylesheet" href="styles/upload.css" data-view-styles="upload">
+</head>
+<body>
+    <!-- Cabecera con navegación -->
+    <header>
+        <div class="logo">
+            <h1>DataApp</h1>
+        </div>
+        <nav>
+            <ul id="main-nav">
+                <li class="nav-item active" data-view="upload">Cargar datos</li>
+                <li class="nav-item" data-view="analysis">Análisis</li>
+                <li class="nav-item" data-view="report">Reporte</li>
+                <li class="nav-item" data-view="settings">Configuración</li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenedor principal donde se cargarán las vistas -->
+    <main id="content-container">
+        <!-- El contenido se cargará aquí dinámicamente -->
+        <!-- Mostramos un mensaje de carga mientras se inicializa la aplicación -->
+        <div class="loading-container">
+            <p>Cargando aplicación...</p>
+        </div>
+    </main>
+
+    <!-- Pie de página -->
+    <footer>
+        <p>&copy; 2025 DataApp - Todos los derechos reservados</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="scripts/navigation.js"></script>
+    <script>
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("Aplicación inicializada");
+            
+            // Verificar si existen las carpetas necesarias
+            const requiredFolders = ['views', 'styles'];
+            const missingFolders = checkFolders(requiredFolders);
+            
+            if (missingFolders.length > 0) {
+                showFolderWarning(missingFolders);
+            } else {
+                // Cargar la vista de carga de datos por defecto
+                setTimeout(() => {
+                    loadView("upload");
+                }, 300); // Pequeño retraso para mostrar la animación de carga
+            }
+        });
+        
+        // Función para verificar si existen las carpetas necesarias
+        function checkFolders(folders) {
+            // Esta es una simulación, ya que no podemos acceder directamente al sistema de archivos
+            // En una aplicación real, esto requeriría un backend
+            const missingFolders = [];
+            
+            // Si estamos en un entorno local (file://), asumamos que faltan
+            if (window.location.protocol === 'file:') {
+                return []; // Asumimos que están todas para no bloquear la aplicación
+            }
+            
+            return missingFolders;
+        }
+        
+        // Mostrar advertencia si faltan carpetas
+        function showFolderWarning(missingFolders) {
+            document.getElementById('content-container').innerHTML = `
+                <div class="error-message">
+                    <h2>Configuración incompleta</h2>
+                    <p>Faltan algunas carpetas necesarias para el funcionamiento de la aplicación:</p>
+                    <ul>
+                        ${missingFolders.map(folder => `<li>${folder}</li>`).join('')}
+                    </ul>
+                    <p>Asegúrate de que la estructura del proyecto sea correcta.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
