@@ -54,16 +54,20 @@
     <script src="scripts/fileUploader.js"></script>
     <script src="scripts/urlLoader.js"></script>
     <script src="scripts/dataProcessor.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="scripts/chart.js"></script> <!-- Donde estará tu función renderCharts -->
+
+
     
     <script>
         // Inicializar la aplicación cuando el DOM esté listo
         document.addEventListener("DOMContentLoaded", () => {
             console.log("Aplicación inicializada");
-            
+
             // Verificar si existen las carpetas necesarias
             const requiredFolders = ['views', 'styles', 'scripts'];
             const missingFolders = checkFolders(requiredFolders);
-            
+
             if (missingFolders.length > 0) {
                 showFolderWarning(missingFolders);
             } else {
@@ -73,21 +77,42 @@
                 }, 300); // Pequeño retraso para mostrar la animación de carga
             }
         });
-        
+
+        // Evento global para capturar el clic en "Procesar datos"
+        document.addEventListener("click", function (event) {
+            const processBtn = document.getElementById("process-file-btn");
+
+            if (event.target === processBtn) {
+                const delimiter = document.getElementById("delimiter").value;
+                const encoding = document.getElementById("encoding").value;
+
+                FileUploader.readFile({ delimiter, encoding }, (error, result) => {
+                    if (error) {
+                        alert("Error al leer archivo: " + error.message);
+                        return;
+                    }
+
+                    // Guardar los datos globalmente
+                    window.appData = result.data;
+
+                    // Ir a la vista de análisis
+                    document.querySelector('[data-view="analysis"]').click();
+                });
+            }
+        });
+
         // Función para verificar si existen las carpetas necesarias
         function checkFolders(folders) {
             // Esta es una simulación, ya que no podemos acceder directamente al sistema de archivos
-            // En una aplicación real, esto requeriría un backend
             const missingFolders = [];
-            
-            // Si estamos en un entorno local (file://), asumamos que faltan
+
             if (window.location.protocol === 'file:') {
                 return []; // Asumimos que están todas para no bloquear la aplicación
             }
-            
+
             return missingFolders;
         }
-        
+
         // Mostrar advertencia si faltan carpetas
         function showFolderWarning(missingFolders) {
             document.getElementById('content-container').innerHTML = `
@@ -102,5 +127,6 @@
             `;
         }
     </script>
+
 </body>
 </html>

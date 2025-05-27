@@ -257,9 +257,21 @@ function initializeView(viewName) {
             initUploadView();
             break;
         case 'analysis':
-            // Inicializar la vista de análisis cuando esté implementada
-            console.log('Vista de análisis cargada');
-            break;
+        console.log('Vista de análisis cargada');
+
+        if (window.appData) {
+            // Asegúrate que renderCharts está expuesto globalmente
+            if (typeof window.renderCharts === "function") {
+                window.renderCharts(window.appData);
+            } else {
+                console.warn("La función renderCharts() no está disponible.");
+            }
+        } else {
+            console.warn("No hay datos cargados para analizar.");
+            const container = document.getElementById("content-container");
+            container.innerHTML += `<p style="color:red;">Primero debes cargar los datos en la pestaña "Cargar datos".</p>`;
+        }
+        break;
         case 'report':
             // Inicializar la vista de reportes cuando esté implementada
             console.log('Vista de reportes cargada');
