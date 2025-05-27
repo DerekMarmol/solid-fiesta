@@ -13,6 +13,10 @@
     
     <!-- Precargar estilos de la vista de carga ya que es la primera vista -->
     <link rel="stylesheet" href="styles/upload.css" data-view-styles="upload">
+    
+    <!-- Bibliotecas externas para procesamiento de datos (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <!-- Cabecera con navegación -->
@@ -25,7 +29,6 @@
                 <li class="nav-item active" data-view="upload">Cargar datos</li>
                 <li class="nav-item" data-view="analysis">Análisis</li>
                 <li class="nav-item" data-view="report">Reporte</li>
-                <li class="nav-item" data-view="settings">Configuración</li>
             </ul>
         </nav>
     </header>
@@ -44,15 +47,21 @@
         <p>&copy; 2025 DataApp - Todos los derechos reservados</p>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Scripts del sistema de navegación (desarrollado por tu compañero) -->
     <script src="scripts/navigation.js"></script>
+    
+    <!-- Scripts del sistema de carga y procesamiento de datos (tu parte) -->
+    <script src="scripts/fileUploader.js"></script>
+    <script src="scripts/urlLoader.js"></script>
+    <script src="scripts/dataProcessor.js"></script>
+    
     <script>
         // Inicializar la aplicación cuando el DOM esté listo
         document.addEventListener("DOMContentLoaded", () => {
             console.log("Aplicación inicializada");
             
             // Verificar si existen las carpetas necesarias
-            const requiredFolders = ['views', 'styles'];
+            const requiredFolders = ['views', 'styles', 'scripts'];
             const missingFolders = checkFolders(requiredFolders);
             
             if (missingFolders.length > 0) {

@@ -1,0 +1,128 @@
+<div class="upload-container">
+    <h2 class="section-title">Cargar datos</h2>
+    
+    <div class="tabs">
+        <div class="tab-header">
+            <div class="tab active" data-tab="file-tab">Archivo local</div>
+            <div class="tab" data-tab="url-tab">URL / API</div>
+        </div>
+        <div class="tab-content">
+            <!-- Pestaña de carga de archivos locales -->
+            <div class="tab-pane active" id="file-tab">
+                <div class="upload-instructions">
+                    <p><strong>Instrucciones:</strong></p>
+                    <ul>
+                        <li>Selecciona un archivo CSV, Excel o JSON para analizar</li>
+                        <li>El tamaño máximo permitido es de 10MB</li>
+                        <li>Se recomienda usar archivos con encabezados</li>
+                    </ul>
+                </div>
+                
+                <div class="upload-area">
+                    <form id="upload-form">
+                        <div class="file-drop-area">
+                            <span class="fake-btn">Seleccionar archivo</span>
+                            <span class="file-msg">o arrastra y suelta aquí</span>
+                            <input class="file-input" id="file-upload" type="file" accept=".csv, .xlsx, .xls, .json">
+                        </div>
+                        
+                        <div id="file-info" class="file-info">
+                            Ningún archivo seleccionado
+                        </div>
+                        
+                        <div class="upload-options">
+                            <div class="form-group">
+                                <label for="delimiter">Delimitador:</label>
+                                <select id="delimiter" class="select-input">
+                                    <option value="comma">Coma (,)</option>
+                                    <option value="semicolon">Punto y coma (;)</option>
+                                    <option value="tab">Tabulación</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="encoding">Codificación:</label>
+                                <select id="encoding" class="select-input">
+                                    <option value="utf8">UTF-8</option>
+                                    <option value="latin1">Latin-1</option>
+                                    <option value="ascii">ASCII</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dataset-name">Nombre del dataset:</label>
+                                <input type="text" id="dataset-name" class="text-input" placeholder="Nombre (opcional)">
+                            </div>
+                        </div>
+                        
+                        <div class="upload-actions">
+                            <button type="button" id="process-file-btn" class="btn" disabled>Procesar datos</button>
+                            <button type="reset" class="btn btn-secondary">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Pestaña de carga desde URL -->
+            <div class="tab-pane" id="url-tab">
+                <div class="upload-instructions">
+                    <p><strong>Instrucciones:</strong></p>
+                    <ul>
+                        <li>Introduce una URL de un archivo CSV, JSON o una API REST</li>
+                        <li>También puedes usar enlaces de Google Sheets (deben ser públicos)</li>
+                        <li>El sistema detectará automáticamente el tipo de datos</li>
+                    </ul>
+                </div>
+                
+                <div class="upload-area">
+                    <form id="url-form">
+                        <div class="form-group">
+                            <label for="data-url">URL de los datos:</label>
+                            <input type="url" id="data-url" class="text-input full-width" 
+                                placeholder="https://ejemplo.com/datos.csv">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="url-data-type">Tipo de datos:</label>
+                            <select id="url-data-type" class="select-input">
+                                <option value="auto">Detectar automáticamente</option>
+                                <option value="json">JSON</option>
+                                <option value="csv">CSV</option>
+                                <option value="text">Texto plano</option>
+                                <option value="gsheets">Google Sheets</option>
+                            </select>
+                        </div>
+                        
+                        <div id="csv-options" class="hidden">
+                            <div class="form-group">
+                                <label for="url-delimiter">Delimitador CSV:</label>
+                                <select id="url-delimiter" class="select-input">
+                                    <option value="comma">Coma (,)</option>
+                                    <option value="semicolon">Punto y coma (;)</option>
+                                    <option value="tab">Tabulación</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="url-dataset-name">Nombre del dataset:</label>
+                            <input type="text" id="url-dataset-name" class="text-input" placeholder="Nombre (opcional)">
+                        </div>
+                        
+                        <div class="upload-actions">
+                            <button type="button" id="process-url-btn" class="btn">Cargar desde URL</button>
+                            <button type="reset" class="btn btn-secondary">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recent-uploads">
+        <h3>Archivos recientes</h3>
+        <div class="upload-history">
+            <p class="no-data">No hay archivos recientes</p>
+        </div>
+    </div>
+</div>

@@ -49,8 +49,11 @@ async function loadView(viewName) {
         // Cargar estilos específicos de la vista
         loadViewStyles(viewName);
         
-        // Inicializar funcionalidad específica de la vista
-        initializeView(viewName);
+        // IMPORTANTE: Inicializar funcionalidad específica de la vista
+        // Usar setTimeout para asegurar que el DOM esté completamente renderizado
+        setTimeout(() => {
+            initializeView(viewName);
+        }, 100);
         
     } catch (error) {
         console.error('Error al cargar la vista:', error);
@@ -144,7 +147,7 @@ function getDefaultViewContent(viewName) {
                             </div>
                             
                             <div class="upload-actions">
-                                <button type="submit" id="upload-btn" class="btn" disabled>Procesar datos</button>
+                                <button type="button" id="process-file-btn" class="btn" disabled>Procesar datos</button>
                                 <button type="reset" class="btn btn-secondary">Cancelar</button>
                             </div>
                         </form>
@@ -245,8 +248,10 @@ function loadViewStyles(viewName) {
     }
 }
 
-// Inicializar funcionalidad específica para cada vista
+// FUNCIÓN CRÍTICA: Inicializar funcionalidad específica para cada vista
 function initializeView(viewName) {
+    console.log(`Inicializando vista: ${viewName}`);
+    
     switch(viewName) {
         case 'upload':
             initUploadView();
@@ -266,62 +271,407 @@ function initializeView(viewName) {
     }
 }
 
-// Inicializar la vista de carga de datos
+// FUNCIÓN MEJORADA: Inicializar la vista de carga de datos
 function initUploadView() {
+    console.log('Inicializando vista de upload...');
+    
+    // Buscar elementos en el DOM
+    const dropArea = document.querySelector('.file-drop-area');
     const fileInput = document.getElementById('file-upload');
     const fileInfo = document.getElementById('file-info');
-    const uploadForm = document.getElementById('upload-form');
+    const processFileBtn = document.getElementById('process-file-btn');
     
-    if (fileInput) {
+    console.log('Elementos encontrados:', {
+        dropArea: !!dropArea,
+        fileInput: !!fileInput,
+        fileInfo: !!fileInfo,
+        processFileBtn: !!processFileBtn
+    });
+    
+    // Evento para procesar archivo local - MOVER ANTES del event listener del archivo
+    let newBtn;
+    if (processFileBtn) {
+        // Eliminar eventos anteriores para evitar duplicados
+        console.log('Botón original:', processFileBtn);
+        console.log('Botón habilitado:', !processFileBtn.disabled);
+        newBtn = processFileBtn.cloneNode(true);
+        processFileBtn.parentNode.replaceChild(newBtn, processFileBtn);
+    }
+    
+    // Inicializar el cargador de archivos si los elementos existen
+    if (dropArea && fileInput && window.FileUploader) {
+        console.log('Inicializando FileUploader...');
+        window.FileUploader.init(dropArea, fileInput, fileInfo, newBtn || processFileBtn);
+        
+        // Verificar si el input de archivo está funcionando
         fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                fileInfo.textContent = `Archivo seleccionado: ${file.name} (${formatFileSize(file.size)})`;
-                const uploadBtn = document.getElementById('upload-btn');
-                if (uploadBtn) {
-                    uploadBtn.disabled = false;
-                }
-            } else {
-                fileInfo.textContent = 'Ningún archivo seleccionado';
-                const uploadBtn = document.getElementById('upload-btn');
-                if (uploadBtn) {
-                    uploadBtn.disabled = true;
+            console.log('Archivo seleccionado desde navigation.js:', e.target.files[0]);
+            if (e.target.files[0]) {
+                console.log('Habilitando botón manualmente...');
+                if (newBtn) {
+                    newBtn.disabled = false;  // Usar newBtn en lugar de processFileBtn
                 }
             }
         });
+        console.log('FileUploader inicializado');
+    } else {
+        console.error('No se pudo inicializar FileUploader. Elementos faltantes o FileUploader no disponible.');
     }
     
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+    // Configurar las pestañas
+    const tabs = document.querySelectorAll('.tab');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    console.log('Pestañas encontradas:', tabs.length);
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            console.log('Cambiando a pestaña:', tab.getAttribute('data-tab'));
             
-            const fileInput = document.getElementById('file-upload');
-            const file = fileInput.files[0];
+            // Remover clase active de todas las pestañas
+            tabs.forEach(t => t.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
             
-            if (!file) {
-                alert('Por favor, selecciona un archivo primero.');
+            // Agregar clase active a la pestaña actual
+            tab.classList.add('active');
+            
+            // Mostrar el contenido correspondiente
+            const tabId = tab.getAttribute('data-tab');
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
+        });
+    });
+    
+    // Configurar el selector de tipo de datos de URL
+    const urlDataType = document.getElementById('url-data-type');
+    const csvOptions = document.getElementById('csv-options');
+    
+    if (urlDataType && csvOptions) {
+        urlDataType.addEventListener('change', () => {
+            if (urlDataType.value === 'csv' || urlDataType.value === 'auto') {
+                csvOptions.classList.remove('hidden');
+            } else {
+                csvOptions.classList.add('hidden');
+            }
+        });
+
+        console.log('FileUploader disponible:', !!window.FileUploader);
+        console.log('DataProcessor disponible:', !!window.DataProcessor);
+    }
+    
+    // Configurar el event listener del botón procesado
+    if (newBtn) {
+        newBtn.addEventListener('click', () => {
+            console.log('Event listener agregado al botón');
+            console.log('Procesando archivo...');
+
+            console.log('Botón clickeado, archivo actual:', window.FileUploader?.getCurrentFile());
+            
+            if (!window.FileUploader) {
+                console.error('FileUploader no está disponible');
                 return;
             }
             
-            // Aquí iría la lógica para procesar el archivo
-            // Por ahora solo mostraremos un mensaje de éxito
-            const uploadArea = document.querySelector('.upload-area');
-            if (uploadArea) {
-                uploadArea.innerHTML = `
-                    <div class="success-message">
-                        <h3>¡Archivo cargado con éxito!</h3>
-                        <p>Nombre: ${file.name}</p>
-                        <p>Tamaño: ${formatFileSize(file.size)}</p>
-                        <p>Tipo: ${file.type}</p>
+            const currentFile = window.FileUploader.getCurrentFile();
+            
+            if (!currentFile) {
+                alert('Por favor, selecciona un archivo primero');
+                return;
+            }
+            
+            // Obtener opciones
+            const delimiter = document.getElementById('delimiter')?.value || 'comma';
+            const encoding = document.getElementById('encoding')?.value || 'utf8';
+            const datasetName = document.getElementById('dataset-name')?.value || 
+                               currentFile.name.replace(/\.[^/.]+$/, "");
+            
+            // Mostrar indicador de carga
+            if (fileInfo) {
+                fileInfo.innerHTML = '<div class="loading">Procesando datos...</div>';
+            }
+            newBtn.disabled = true;
+            
+            // Leer y procesar archivo
+            window.FileUploader.readFile({
+                delimiter,
+                encoding
+            }, (error, data) => {
+                if (error) {
+                    if (fileInfo) {
+                        fileInfo.innerHTML = `<div class="error">Error al procesar el archivo: ${error.message}</div>`;
+                    }
+                    newBtn.disabled = false;
+                    return;
+                }
+                
+                try {
+                    // Procesar datos con el procesador de datos
+                    if (window.DataProcessor) {
+                        const processedData = window.DataProcessor.processData(data, {
+                            datasetName,
+                            source: `Archivo local: ${currentFile.name}`,
+                            removeEmpty: true,
+                            convertTypes: true,
+                            trimStrings: true
+                        });
                         
-                        <button type="button" class="btn mt-2" onclick="loadView('upload')">
-                            Cargar otro archivo
-                        </button>
-                    </div>
+                        console.log('Datos procesados:', processedData);
+                        
+                        // Mostrar éxito
+                        if (fileInfo) {
+                            fileInfo.innerHTML = `
+                                <div class="success">
+                                    <p>Archivo procesado con éxito:</p>
+                                    <ul>
+                                        <li>Filas: ${processedData.data.length}</li>
+                                        <li>Columnas: ${processedData.data.length > 0 ? Object.keys(processedData.data[0]).length : 0}</li>
+                                    </ul>
+                                </div>`;
+                        }
+                        
+                        // Actualizar interfaz de historial
+                        updateDatasetHistoryUI();
+                        
+                        // Mostrar opción para ir a la vista de análisis
+                        const uploadForm = document.getElementById('upload-form');
+                        if (uploadForm) {
+                            uploadForm.innerHTML = `
+                                <div class="success-message">
+                                    <h3>¡Datos cargados correctamente!</h3>
+                                    <p>Se han procesado ${processedData.data.length} filas de datos.</p>
+                                    <div class="upload-actions mt-2">
+                                        <button type="button" class="btn" onclick="loadView('analysis')">
+                                            Ir a Análisis
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="loadView('upload')">
+                                            Cargar otro archivo
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        if (fileInfo) {
+                            fileInfo.innerHTML = '<div class="error">Error: Módulo DataProcessor no disponible</div>';
+                        }
+                        newBtn.disabled = false;
+                    }
+                } catch (processError) {
+                    console.error('Error al procesar:', processError);
+                    if (fileInfo) {
+                        fileInfo.innerHTML = `<div class="error">Error al procesar: ${processError.message}</div>`;
+                    }
+                    newBtn.disabled = false;
+                }
+            });
+        });
+    }
+    
+    // Evento para procesar URL
+    const processUrlBtn = document.getElementById('process-url-btn');
+    if (processUrlBtn && window.UrlLoader && window.DataProcessor) {
+        // Eliminar eventos anteriores
+        const newUrlBtn = processUrlBtn.cloneNode(true);
+        processUrlBtn.parentNode.replaceChild(newUrlBtn, processUrlBtn);
+        
+        newUrlBtn.addEventListener('click', async () => {
+            console.log('Procesando URL...');
+            
+            const dataUrl = document.getElementById('data-url')?.value.trim();
+            
+            if (!dataUrl) {
+                alert('Por favor, introduce una URL válida');
+                return;
+            }
+            
+            // Obtener opciones
+            const dataType = document.getElementById('url-data-type')?.value || 'auto';
+            const delimiter = document.getElementById('url-delimiter')?.value || 'comma';
+            const datasetName = document.getElementById('url-dataset-name')?.value || 
+                                new URL(dataUrl).pathname.split('/').pop() || 'Datos externos';
+            
+            // Mostrar indicador de carga
+            const urlForm = document.getElementById('url-form');
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'loading-message';
+            loadingMsg.innerHTML = '<div class="loading">Cargando datos desde URL...</div>';
+            if (urlForm) {
+                urlForm.appendChild(loadingMsg);
+            }
+            
+            newUrlBtn.disabled = true;
+            
+            try {
+                // Procesar URL de Google Sheets si es necesario
+                let finalUrl = dataUrl;
+                if (dataType === 'gsheets' || (dataType === 'auto' && dataUrl.includes('docs.google.com/spreadsheets'))) {
+                    finalUrl = window.UrlLoader.getGoogleSheetsCsvUrl(dataUrl);
+                }
+                
+                // Determinar tipo de datos real
+                let actualDataType = dataType;
+                if (dataType === 'auto') {
+                    actualDataType = window.UrlLoader.detectDataType(finalUrl);
+                }
+                
+                // Configurar opciones de CSV si es necesario
+                const csvOptions = {};
+                if (actualDataType === window.UrlLoader.DATA_TYPES.CSV) {
+                    switch(delimiter) {
+                        case 'comma': csvOptions.delimiter = ','; break;
+                        case 'semicolon': csvOptions.delimiter = ';'; break;
+                        case 'tab': csvOptions.delimiter = '\t'; break;
+                    }
+                    csvOptions.header = true;
+                    csvOptions.dynamicTyping = true;
+                    csvOptions.skipEmptyLines = true;
+                }
+                
+                // Cargar datos
+                const data = await window.UrlLoader.fetchData(finalUrl, {
+                    dataType: actualDataType,
+                    csvOptions
+                });
+                
+                // Procesar datos
+                const processedData = window.DataProcessor.processData(data, {
+                    datasetName,
+                    source: `URL: ${dataUrl}`,
+                    removeEmpty: true,
+                    convertTypes: true,
+                    trimStrings: true
+                });
+                
+                console.log('Datos desde URL procesados:', processedData);
+                
+                // Eliminar indicador de carga
+                if (urlForm && urlForm.contains(loadingMsg)) {
+                    urlForm.removeChild(loadingMsg);
+                }
+                
+                // Mostrar éxito
+                if (urlForm) {
+                    urlForm.innerHTML = `
+                        <div class="success-message">
+                            <h3>¡Datos cargados correctamente!</h3>
+                            <p>Se han procesado ${processedData.data.length} filas de datos desde URL.</p>
+                            <div class="upload-actions mt-2">
+                                <button type="button" class="btn" onclick="loadView('analysis')">
+                                    Ir a Análisis
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="loadView('upload')">
+                                    Cargar otros datos
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Actualizar interfaz de historial
+                updateDatasetHistoryUI();
+                
+            } catch (error) {
+                console.error('Error al cargar desde URL:', error);
+                
+                // Eliminar indicador de carga
+                if (urlForm && urlForm.contains(loadingMsg)) {
+                    urlForm.removeChild(loadingMsg);
+                }
+                
+                // Mostrar error
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.innerHTML = `
+                    <h3>Error al cargar datos</h3>
+                    <p>${error.message}</p>
                 `;
+                if (urlForm) {
+                    urlForm.appendChild(errorMsg);
+                }
+                
+                newUrlBtn.disabled = false;
+                
+                // Eliminar mensaje de error después de 5 segundos
+                setTimeout(() => {
+                    if (urlForm && urlForm.contains(errorMsg)) {
+                        urlForm.removeChild(errorMsg);
+                    }
+                }, 5000);
             }
         });
     }
+    
+    // Inicializar el procesador de datos para cargar el historial
+    if (window.DataProcessor) {
+        window.DataProcessor.init();
+        updateDatasetHistoryUI();
+    }
+}
+
+// Función para actualizar la interfaz del historial
+function updateDatasetHistoryUI() {
+    if (!window.DataProcessor) return;
+    
+    const historyContainer = document.querySelector('.upload-history');
+    if (!historyContainer) return;
+    
+    const datasetHistory = window.DataProcessor.getDatasetHistory();
+    
+    if (!datasetHistory || datasetHistory.length === 0) {
+        historyContainer.innerHTML = '<p class="no-data">No hay archivos recientes</p>';
+        return;
+    }
+    
+    // Crear lista de conjuntos de datos
+    const historyList = document.createElement('ul');
+    historyList.className = 'dataset-history-list';
+    
+    // Limitar a los últimos 5 conjuntos
+    const recentDatasets = datasetHistory.slice(0, 5);
+    
+    recentDatasets.forEach(dataset => {
+        const listItem = document.createElement('li');
+        listItem.className = 'dataset-item';
+        
+        // Formatear fecha
+        const date = new Date(dataset.timestamp);
+        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        
+        // Crear HTML del elemento
+        listItem.innerHTML = `
+            <div class="dataset-info">
+                <span class="dataset-name">${dataset.meta?.datasetName || 'Dataset sin nombre'}</span>
+                <span class="dataset-date">${formattedDate}</span>
+            </div>
+            <div class="dataset-description">${dataset.description}</div>
+            <div class="dataset-actions">
+                <button class="btn-small" data-action="load" data-id="${dataset.id}">Cargar</button>
+                <button class="btn-small btn-secondary" data-action="delete" data-id="${dataset.id}">Eliminar</button>
+            </div>
+        `;
+        
+        // Agregar eventos a los botones
+        listItem.querySelector('[data-action="load"]').addEventListener('click', () => {
+            if (window.DataProcessor && window.DataProcessor.loadDataset) {
+                window.DataProcessor.loadDataset(dataset.id);
+            }
+        });
+        
+        listItem.querySelector('[data-action="delete"]').addEventListener('click', () => {
+            if (window.DataProcessor && window.DataProcessor.removeDataset) {
+                window.DataProcessor.removeDataset(dataset.id);
+                updateDatasetHistoryUI(); // Actualizar después de eliminar
+            }
+        });
+        
+        historyList.appendChild(listItem);
+    });
+    
+    // Limpiar contenedor y agregar la lista
+    historyContainer.innerHTML = '';
+    historyContainer.appendChild(historyList);
 }
 
 // Formatear el tamaño del archivo para mostrar
