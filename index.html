@@ -10,13 +10,15 @@
     
     <!-- Estilos principales -->
     <link rel="stylesheet" href="styles/main.css">
-    
+    <link rel="stylesheet" href="styles/probabilistic.css" data-view-styles="probabilistic">
     <!-- Precargar estilos de la vista de carga ya que es la primera vista -->
     <link rel="stylesheet" href="styles/upload.css" data-view-styles="upload">
     
     <!-- Bibliotecas externas para procesamiento de datos (CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <!-- Cabecera con navegación -->
@@ -28,7 +30,7 @@
             <ul id="main-nav">
                 <li class="nav-item active" data-view="upload">Cargar datos</li>
                 <li class="nav-item" data-view="analysis">Análisis</li>
-                <li class="nav-item" data-view="report">Reporte</li>
+                <li class="nav-item" data-view="probabilistic">Analisis Probabilistico</li>
             </ul>
         </nav>
     </header>
@@ -56,7 +58,7 @@
     <script src="scripts/dataProcessor.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts/chart.js"></script> <!-- Donde estará tu función renderCharts -->
-
+    <script src="js/probabilisticAnalysis.js"></script>
 
     
     <script>
