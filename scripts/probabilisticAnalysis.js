@@ -359,6 +359,7 @@ function calcular() {
     }
 }
 
+
 /**
  * Genera y muestra un gráfico de distribución normal utilizando Chart.js.
  * @param {number} media - La media de la distribución.
@@ -372,75 +373,194 @@ function graficar(media, sd, tipo, x1, x2) {
         console.error("No se encontró el elemento canvas para graficar.");
         return;
     }
+
     const ctx = graficaCanvas.getContext("2d");
-    const labels = [], data = [], bg = [];
+    const labels = [], curveData = [], areaData = [];
 
-    // Rango de la gráfica (4 desviaciones estándar alrededor de la media)
-    const minChartVal = Math.max(0, media - 4 * sd);
-    const maxChartVal = media + 4 * sd;
-    // Asegura que el paso sea positivo para evitar bucles infinitos si minChartVal >= maxChartVal
-    const step = (maxChartVal - minChartVal > 0) ? (maxChartVal - minChartVal) / 200 : 0.1;
+    const minX = Math.max(0, media - 4 * sd);
+    const maxX = media + 4 * sd;
+    const step = (maxX - minX) / 200;
 
-    for (let i = minChartVal; i <= maxChartVal; i += step) {
-        labels.push(i.toFixed(1));
-        data.push(normPDF(i, media, sd));
+    for (let i = minX; i <= maxX; i += step) {
+        const x = parseFloat(i.toFixed(2));
+        const y = normPDF(x, media, sd);
 
-        let highlight = false;
+        labels.push(x.toFixed(2));
+        curveData.push(y);
+
+        let inArea = false;
         if (tipo === 'Valor exacto') {
-            highlight = i >= x1 - 0.5 && i <= x1 + 0.5;
+            inArea = x >= (x1 - 0.5) && x <= (x1 + 0.5);
         } else if (tipo === 'Valor menor que') {
-            highlight = i <= x1 - 0.5;
+            inArea = x <= (x1 - 0.5);
         } else if (tipo === 'Valor mayor que') {
-            highlight = i >= x1 + 0.5;
+            inArea = x >= (x1 + 0.5);
         } else if (tipo === 'Valores entre un rango') {
-            const lowerBound = Math.min(x1, x2);
-            const upperBound = Math.max(x1, x2);
-            highlight = i >= lowerBound - 0.5 && i <= upperBound + 0.5;
+            const minR = Math.min(x1, x2);
+            const maxR = Math.max(x1, x2);
+            inArea = x >= (minR - 0.5) && x <= (maxR + 0.5);
         }
 
-        bg.push(highlight ? 'rgba(0,200,0,0.5)' : 'rgba(54, 162, 235, 0.1)');
+        areaData.push(inArea ? y : null);
     }
 
-    if (chartInstance) chartInstance.destroy(); // Destruir instancia anterior
+    const datasets = [
+        {
+            label: 'Distribución Normal',
+            data: curveData,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(0,0,0,0)',
+            borderWidth: 2,
+            fill: false,
+            pointRadius: 0,
+            tension: 0.3
+        },
+        {
+            label: 'Área de Probabilidad',
+            data: areaData,
+            borderColor: 'rgba(0,200,0,0.8)',
+            backgroundColor: 'rgba(0,200,0,0.3)',
+            borderWidth: 1,
+            fill: 'origin',
+            pointRadius: 0,
+            tension: 0.3
+        }
+    ];
+
+    const annotations = {};
+
+    if (tipo === 'Valor exacto') {
+        annotations.line1 = {
+            type: 'line',
+            xMin: x1 - 0.5,
+            xMax: x1 - 0.5,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                content: `X = ${x1 - 0.5}`,
+                enabled: true,
+                position: 'top'
+            }
+        };
+        annotations.line2 = {
+            type: 'line',
+            xMin: x1 + 0.5,
+            xMax: x1 + 0.5,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                content: `X = ${x1 + 0.5}`,
+                enabled: true,
+                position: 'top'
+            }
+        };
+    } else if (tipo === 'Valor menor que') {
+        annotations.line1 = {
+            type: 'line',
+            xMin: x1 - 0.5,
+            xMax: x1 - 0.5,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                content: `X < ${x1}`,
+                enabled: true,
+                position: 'top'
+            }
+        };
+    } else if (tipo === 'Valor mayor que') {
+        annotations.line1 = {
+            type: 'line',
+            xMin: x1 + 0.5,
+            xMax: x1 + 0.5,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                content: `X > ${x1}`,
+                enabled: true,
+                position: 'top'
+            }
+        };
+    } else if (tipo === 'Valores entre un rango') {
+        annotations.line1 = {
+            type: 'line',
+            xMin: x1 - 0.5,
+            xMax: x1 - 0.5,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                content: `X = ${x1 - 0.5}`,
+                enabled: true,
+                position: 'top'
+            }
+        };
+        annotations.line2 = {
+            type: 'line',
+            xMin: x2 + 0.5,
+            xMax: x2 + 0.5,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                content: `X = ${x2 + 0.5}`,
+                enabled: true,
+                position: 'top'
+            }
+        };
+    }
+
+    if (chartInstance) chartInstance.destroy();
 
     chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Distribución Normal',
-                data: data,
-                backgroundColor: bg,
-                pointRadius: 0,
-                fill: true,
-                borderColor: 'rgb(54, 162, 235)',
-                borderWidth: 2,
-                tension: 0.3
-            }]
+            datasets: datasets
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: true },
+                legend: {
+                    display: true
+                },
                 title: {
                     display: true,
-                    text: 'Distribución Normal con Área de Probabilidad Resaltada'
+                    text: `Distribución Normal - ${tipo}`
+                },
+                annotation: {
+                    annotations: annotations
                 }
             },
             scales: {
                 x: {
-                    title: { display: true, text: 'Número de personas' },
-                    ticks: { maxTicksLimit: 15 } // Aumentar límite de ticks para mejor visualización
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Valor X'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return parseFloat(value).toFixed(1);
+                        }
+                    }
                 },
                 y: {
-                    title: { display: true, text: 'Densidad de probabilidad' },
+                    title: {
+                        display: true,
+                        text: 'Densidad de probabilidad'
+                    },
                     beginAtZero: true
                 }
             }
         }
     });
 }
+
 
 /**
  * Calcula la función de densidad de probabilidad (PDF) para una distribución normal.
